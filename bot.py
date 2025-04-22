@@ -92,7 +92,8 @@ async def play_next_song(voice_client, guild_id, channel):
             "options": "-vn -c:a libopus -b:a 96k",
         }
 
-        source = discord.FFmpegOpusAudio(audio_url, **ffmpeg_options, executable="bin\\ffmpeg\\ffmpeg.exe")
+        # Create FFmpeg audio source without specifying the executable path
+        source = discord.FFmpegOpusAudio(audio_url, **ffmpeg_options)
 
         def after_play(error):
             if error:
@@ -104,6 +105,7 @@ async def play_next_song(voice_client, guild_id, channel):
     else:
         await voice_client.disconnect()
         SONG_QUEUES[guild_id] = deque()
+
 
 @bot.tree.command(name="pause", description="Pause the currently playing song.")
 async def pause(interaction: discord.Interaction):
