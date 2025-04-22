@@ -4,7 +4,7 @@ import wavelink
 import os
 import imageio_ffmpeg
 
-# Set FFmpeg path
+# Set up FFmpeg path
 os.environ["PATH"] = os.path.dirname(imageio_ffmpeg.get_ffmpeg_exe()) + os.pathsep + os.environ["PATH"]
 
 intents = discord.Intents.all()
@@ -13,11 +13,13 @@ bot = commands.Bot(command_prefix="$", intents=intents)
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}")
-    await wavelink.NodePool.connect(
-        client=bot,
-        nodes=[
-            wavelink.Node(uri="http://lava.link:80", password="youshallnotpass")
-        ]
+    # Connect to Lavalink (make sure Lavalink is running at this host)
+    await wavelink.NodePool.create_node(
+        bot=bot,
+        host='lava.link',
+        port=80,
+        password='youshallnotpass',
+        https=False
     )
 
 @bot.command()
@@ -25,9 +27,9 @@ async def join(ctx):
     if ctx.author.voice:
         channel = ctx.author.voice.channel
         await channel.connect(cls=wavelink.Player)
-        await ctx.send(f"Joined {channel.name}!")
+        await ctx.send(f"Joined {channel.name}")
     else:
-        await ctx.send("You need to be in a voice channel!")
+        await ctx.send("You're not in a voice channel!")
 
 @bot.command()
 async def play(ctx, *, search: str):
@@ -43,9 +45,9 @@ async def play(ctx, *, search: str):
 async def stop(ctx):
     if ctx.voice_client:
         await ctx.voice_client.disconnect()
-        await ctx.send("Disconnected from voice channel.")
+        await ctx.send("Disconnected.")
     else:
-        await ctx.send("I'm not connected to a voice channel.")
+        await ctx.send("I'm not in a voice channel.")
 
-# Use environment variable for security
+# Use token from Render environment variable
 bot.run(os.getenv("BOT_TOKEN"))
