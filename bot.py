@@ -1,52 +1,51 @@
 import discord
 from discord.ext import commands
 import wavelink
-import imageio_ffmpeg
 import os
+import imageio_ffmpeg
 
-# Set FFmpeg path for Wavelink or any usage
+# Set FFmpeg path
 os.environ["PATH"] = os.path.dirname(imageio_ffmpeg.get_ffmpeg_exe()) + os.pathsep + os.environ["PATH"]
 
-intents = discord.Intents.default()
-intents.message_content = True
-
-bot = commands.Bot(command_prefix="arc", intents=intents)
+intents = discord.Intents.all()
+bot = commands.Bot(command_prefix="$", intents=intents)
 
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}")
-    await wavelink.Pool.connect(
-        cls=wavelink.Node,
-        host='lava.link',
-        port=80,
-        password='youshallnotpass',
-        bot=bot,
+    await wavelink.NodePool.connect(
+        client=bot,
+        nodes=[
+            wavelink.Node(uri="http://lava.link:80", password="youshallnotpass")
+        ]
     )
 
 @bot.command()
 async def join(ctx):
     if ctx.author.voice:
         channel = ctx.author.voice.channel
-        await ctx.voice_client.disconnect() if ctx.voice_client else None
         await channel.connect(cls=wavelink.Player)
-        await ctx.send(f"Joined {channel.name}")
+        await ctx.send(f"Joined {channel.name}!")
     else:
-        await ctx.send("You must be in a voice channel.")
+        await ctx.send("You need to be in a voice channel!")
 
 @bot.command()
 async def play(ctx, *, search: str):
     if not ctx.voice_client:
         await ctx.invoke(bot.get_command("join"))
 
-    tracks = await wavelink.YouTubeTrack.search(search, return_first=True)
     vc: wavelink.Player = ctx.voice_client
-    await vc.play(tracks)
-    await ctx.send(f"Now playing: {tracks.title}")
+    track = await wavelink.YouTubeTrack.search(search, return_first=True)
+    await vc.play(track)
+    await ctx.send(f"Now playing: {track.title}")
 
 @bot.command()
 async def stop(ctx):
     if ctx.voice_client:
         await ctx.voice_client.disconnect()
-        await ctx.send("Disconnected.")
+        await ctx.send("Disconnected from voice channel.")
+    else:
+        await ctx.send("I'm not connected to a voice channel.")
 
-bot.run("YOUR_BOT_TOKEN")
+# Use environment variable for security
+bot.run(os.getenv("BOT_TOKEN"))
