@@ -17,12 +17,13 @@ SONG_QUEUES = {}
 
 # yt-dlp options with cookies
 ydl_opts = {
-    "format": "bestaudio[abr<=96]/bestaudio",  # Audio quality options
-    "noplaylist": True,                        # Don't download entire playlists
-    "youtube_include_dash_manifest": False,     # Don't include DASH manifest
-    "youtube_include_hls_manifest": False,      # Don't include HLS manifest
-    "cookiefile": "yt_cookies/cookies.txt",    # Path to your cookies.txt file
+    "format": "bestaudio[abr<=96]/bestaudio",
+    "noplaylist": True,
+    "youtube_include_dash_manifest": False,
+    "youtube_include_hls_manifest": False,
+    "cookiefile": "yt_cookies/cookies_netscape.txt",  # Make sure the path and filename are correct
 }
+
 
 async def search_ytdlp_async(query, ydl_opts):
     loop = asyncio.get_running_loop()
