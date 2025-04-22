@@ -1,4 +1,3 @@
-# bot.py
 import os
 import discord
 from discord.ext import commands
@@ -50,13 +49,16 @@ async def play(interaction: discord.Interaction, song_query: str):
     elif voice_channel != voice_client.channel:
         await voice_client.move_to(voice_channel)
 
+    # Set the ydl_options here
     ydl_options = {
         "format": "bestaudio[abr<=96]/bestaudio",
         "noplaylist": True,
         "youtube_include_dash_manifest": False,
         "youtube_include_hls_manifest": False,
+        "cookiefile": "yt_cookies/cookies.txt",  # <- Make sure this path is correct
     }
 
+    # Construct the search query
     query = "ytsearch1: " + song_query
     results = await search_ytdlp_async(query, ydl_options)
     tracks = results.get("entries", [])
@@ -65,19 +67,23 @@ async def play(interaction: discord.Interaction, song_query: str):
         await interaction.followup.send("No results found.")
         return
 
+    # Get the first track from the results
     first_track = tracks[0]
     audio_url = first_track["url"]
     title = first_track.get("title", "Untitled")
 
+    # Add the track to the queue
     guild_id = str(interaction.guild_id)
     if SONG_QUEUES.get(guild_id) is None:
         SONG_QUEUES[guild_id] = deque()
 
     SONG_QUEUES[guild_id].append((audio_url, title))
 
+    # If something is already playing, add to the queue
     if voice_client.is_playing() or voice_client.is_paused():
         await interaction.followup.send(f"Added to queue: **{title}**")
     else:
+        # If nothing is playing, start playing the track
         await interaction.followup.send(f"Now playing: **{title}**")
         await play_next_song(voice_client, guild_id, interaction.channel)
 
