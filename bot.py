@@ -1,6 +1,11 @@
 import discord
 from discord.ext import commands
 import wavelink
+import imageio_ffmpeg
+import os
+
+# Set FFmpeg path for Wavelink or any usage
+os.environ["PATH"] = os.path.dirname(imageio_ffmpeg.get_ffmpeg_exe()) + os.pathsep + os.environ["PATH"]
 
 intents = discord.Intents.default()
 intents.message_content = True
